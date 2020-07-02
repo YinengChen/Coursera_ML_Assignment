@@ -116,7 +116,6 @@ if (!file.exists(myModelFilename)){
 ```
 
 ```{r}
-
 print(model1, digits = 4)
 ```
 
@@ -125,15 +124,18 @@ print(model1, digits = 4)
 
 ```{r}
 pred <- predict(model1, newdata = testing)
-length(pred)
-length(testing$classe)
+
 ```
 
 ## Evaluation
 
 ```{r}
-confusionMatrix(pred, as.factor(testing$classe))
+eva = confusionMatrix(pred, as.factor(testing$classe))
+eva
+eva$overall[1]
 ```
+
+Overall, the accurarcy of the model is  0.991.
 
 ## Final Model
 
