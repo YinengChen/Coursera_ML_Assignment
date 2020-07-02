@@ -369,8 +369,190 @@ summary {
 </div>
 
 
-<div id="r-markdown" class="section level2">
-<h2>R Markdown</h2>
+<div id="task" class="section level2">
+<h2>Task</h2>
+<p>Using data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants, create a model to predict how well a subject perform in weight lifting exercises.</p>
+<div id="classification-of-performance" class="section level3">
+<h3>classification of performance</h3>
+<ol style="list-style-type: decimal">
+<li><p>Exactly according to the specification (Class A)</p></li>
+<li><p>Throwing the elbows to the front (Class B)</p></li>
+<li><p>Lifting the dumbbell only halfway (Class C)</p></li>
+<li><p>Lowering the dumbbell only halfway (Class D)</p></li>
+<li><p>Throwing the hips to the front (Class E)</p></li>
+</ol>
+</div>
+</div>
+<div id="data-input" class="section level2">
+<h2>Data input</h2>
+<div id="load-data" class="section level3">
+<h3>Load Data</h3>
+</div>
+<div id="data-cleaning" class="section level3">
+<h3>Data Cleaning</h3>
+<p>According to the codebook, the data set includes summary statistics calculated at a measurement boundary. These statistics containes high proportions of missing values and/or error values. Therefore, these statistics are not used in training, instead, only raw data from accelerometers are used. The summary statistics have names begin with “kurtosis_”, “skewness_”, “max_”, “min_”, “amplitude_”, “var_”, “avg_”, and “stddev_”. Variables that are not related to prediction are also removed including X1. user_name, num_window,new_window,timestamp.</p>
+<pre class="r"><code># deal with missing values
+kname = grep(&quot;^(kurtosis_|skewness_|max_|min_|amplitude_|var_|avg_|stddev_)|window|X1|name|time&quot;,names(trainset))
+trainset = trainset[,-kname]
+dim(trainset)</code></pre>
+<pre><code>## [1] 19622    53</code></pre>
+<pre class="r"><code>names(trainset)</code></pre>
+<pre><code>##  [1] &quot;roll_belt&quot;            &quot;pitch_belt&quot;           &quot;yaw_belt&quot;            
+##  [4] &quot;total_accel_belt&quot;     &quot;gyros_belt_x&quot;         &quot;gyros_belt_y&quot;        
+##  [7] &quot;gyros_belt_z&quot;         &quot;accel_belt_x&quot;         &quot;accel_belt_y&quot;        
+## [10] &quot;accel_belt_z&quot;         &quot;magnet_belt_x&quot;        &quot;magnet_belt_y&quot;       
+## [13] &quot;magnet_belt_z&quot;        &quot;roll_arm&quot;             &quot;pitch_arm&quot;           
+## [16] &quot;yaw_arm&quot;              &quot;total_accel_arm&quot;      &quot;gyros_arm_x&quot;         
+## [19] &quot;gyros_arm_y&quot;          &quot;gyros_arm_z&quot;          &quot;accel_arm_x&quot;         
+## [22] &quot;accel_arm_y&quot;          &quot;accel_arm_z&quot;          &quot;magnet_arm_x&quot;        
+## [25] &quot;magnet_arm_y&quot;         &quot;magnet_arm_z&quot;         &quot;roll_dumbbell&quot;       
+## [28] &quot;pitch_dumbbell&quot;       &quot;yaw_dumbbell&quot;         &quot;total_accel_dumbbell&quot;
+## [31] &quot;gyros_dumbbell_x&quot;     &quot;gyros_dumbbell_y&quot;     &quot;gyros_dumbbell_z&quot;    
+## [34] &quot;accel_dumbbell_x&quot;     &quot;accel_dumbbell_y&quot;     &quot;accel_dumbbell_z&quot;    
+## [37] &quot;magnet_dumbbell_x&quot;    &quot;magnet_dumbbell_y&quot;    &quot;magnet_dumbbell_z&quot;   
+## [40] &quot;roll_forearm&quot;         &quot;pitch_forearm&quot;        &quot;yaw_forearm&quot;         
+## [43] &quot;total_accel_forearm&quot;  &quot;gyros_forearm_x&quot;      &quot;gyros_forearm_y&quot;     
+## [46] &quot;gyros_forearm_z&quot;      &quot;accel_forearm_x&quot;      &quot;accel_forearm_y&quot;     
+## [49] &quot;accel_forearm_z&quot;      &quot;magnet_forearm_x&quot;     &quot;magnet_forearm_y&quot;    
+## [52] &quot;magnet_forearm_z&quot;     &quot;classe&quot;</code></pre>
+</div>
+</div>
+<div id="algorithm" class="section level2">
+<h2>Algorithm</h2>
+<div id="slit-the-trainset-into-training-set-and-testing-set" class="section level3">
+<h3>Slit the trainset into training set and testing set</h3>
+<pre class="r"><code>inTrain = createDataPartition(trainset$classe, p = 0.6, list = F)
+training = trainset[inTrain,]
+testing = trainset[-inTrain,]
+dim(training)</code></pre>
+<pre><code>## [1] 11776    53</code></pre>
+<pre class="r"><code>dim(testing)</code></pre>
+<pre><code>## [1] 7846   53</code></pre>
+</div>
+<div id="creat-a-random-forest-model-with-cross-validation" class="section level3">
+<h3>Creat a random forest model with cross validation</h3>
+<pre class="r"><code>myModelFilename &lt;- &quot;myModel.RData&quot;
+if (!file.exists(myModelFilename)){
+  set.seed(95014)
+
+  cluster &lt;- makeCluster(detectCores() - 1) # convention to leave 1 core for OS
+  registerDoParallel(cluster)
+  getDoParWorkers()
+
+
+  fitControl &lt;- trainControl(method = &quot;cv&quot;,
+                           number = 5,
+                           allowParallel = TRUE,
+                           p = 0.6)
+
+
+  model1 &lt;- train(classe~.,
+                  data = training,
+                  metric = &quot;Accuracy&quot;,
+                  method = &quot;rf&quot;,
+                preProcess = c(&quot;center&quot;,&quot;scale&quot;),
+                 trControl = fitControl)
+
+   save(model1, file = &quot;myModel.RData&quot;)
+  
+  stopCluster(cluster)
+  registerDoSEQ()
+  
+  
+} else {
+    load(file = myModelFilename, verbose = TRUE)
+}</code></pre>
+<pre><code>## Loading objects:
+##   model1</code></pre>
+<pre class="r"><code>print(model1, digits = 4)</code></pre>
+<pre><code>## Random Forest 
+## 
+## 11776 samples
+##    52 predictor
+##     5 classes: &#39;A&#39;, &#39;B&#39;, &#39;C&#39;, &#39;D&#39;, &#39;E&#39; 
+## 
+## Pre-processing: centered (52), scaled (52) 
+## Resampling: Cross-Validated (5 fold) 
+## Summary of sample sizes: 9420, 9420, 9420, 9422, 9422 
+## Resampling results across tuning parameters:
+## 
+##   mtry  Accuracy  Kappa 
+##    2    0.9885    0.9854
+##   27    0.9895    0.9867
+##   52    0.9778    0.9720
+## 
+## Accuracy was used to select the optimal model using the largest value.
+## The final value used for the model was mtry = 27.</code></pre>
+</div>
+</div>
+<div id="predict" class="section level2">
+<h2>Predict</h2>
+<pre class="r"><code>pred &lt;- predict(model1, newdata = testing)
+length(pred)</code></pre>
+<pre><code>## [1] 7846</code></pre>
+<pre class="r"><code>length(testing$classe)</code></pre>
+<pre><code>## [1] 7846</code></pre>
+</div>
+<div id="evaluation" class="section level2">
+<h2>Evaluation</h2>
+<pre class="r"><code>confusionMatrix(pred, as.factor(testing$classe))</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 2230    0    0    0    0
+##          B    2 1514    1    1    0
+##          C    0    4 1362    7    3
+##          D    0    0    5 1277    2
+##          E    0    0    0    1 1437
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9967          
+##                  95% CI : (0.9951, 0.9978)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.9958          
+##                                           
+##  Mcnemar&#39;s Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.9991   0.9974   0.9956   0.9930   0.9965
+## Specificity            1.0000   0.9994   0.9978   0.9989   0.9998
+## Pos Pred Value         1.0000   0.9974   0.9898   0.9945   0.9993
+## Neg Pred Value         0.9996   0.9994   0.9991   0.9986   0.9992
+## Prevalence             0.2845   0.1935   0.1744   0.1639   0.1838
+## Detection Rate         0.2842   0.1930   0.1736   0.1628   0.1832
+## Detection Prevalence   0.2842   0.1935   0.1754   0.1637   0.1833
+## Balanced Accuracy      0.9996   0.9984   0.9967   0.9960   0.9982</code></pre>
+</div>
+<div id="final-model" class="section level2">
+<h2>Final Model</h2>
+<pre class="r"><code>model1$finalModel</code></pre>
+<pre><code>## 
+## Call:
+##  randomForest(x = x, y = y, mtry = param$mtry) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 27
+## 
+##         OOB estimate of  error rate: 0.83%
+## Confusion matrix:
+##      A    B    C    D    E class.error
+## A 3343    4    1    0    0 0.001493429
+## B   21 2251    6    1    0 0.012286090
+## C    0   10 2036    8    0 0.008763389
+## D    0    2   29 1896    3 0.017616580
+## E    0    2    2    9 2152 0.006004619</code></pre>
+</div>
+<div id="quiz" class="section level2">
+<h2>Quiz</h2>
+<pre class="r"><code>print(predict(model1, newdata=quizset))</code></pre>
+<pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
+## Levels: A B C D E</code></pre>
 </div>
 
 

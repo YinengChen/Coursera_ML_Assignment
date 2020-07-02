@@ -4,7 +4,7 @@ author: "Yineng Chen"
 date: "6/30/2020"
 output: 
   html_document:
-    keep_md: TRUE
+    keep_md: True
 editor_options: 
   chunk_output_type: console
 ---
