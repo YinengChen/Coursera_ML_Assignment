@@ -178,26 +178,14 @@ print(model1, digits = 4)
 
 ```r
 pred <- predict(model1, newdata = testing)
-length(pred)
-```
-
-```
-## [1] 7846
-```
-
-```r
-length(testing$classe)
-```
-
-```
-## [1] 7846
 ```
 
 ## Evaluation
 
 
 ```r
-confusionMatrix(pred, as.factor(testing$classe))
+eva = confusionMatrix(pred, as.factor(testing$classe))
+eva
 ```
 
 ```
@@ -205,35 +193,46 @@ confusionMatrix(pred, as.factor(testing$classe))
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 2230    0    0    0    0
-##          B    2 1514    1    1    0
-##          C    0    4 1362    7    3
-##          D    0    0    5 1277    2
-##          E    0    0    0    1 1437
+##          A 2231    5    0    0    0
+##          B    1 1504    3    0    0
+##          C    0    8 1363    3    4
+##          D    0    1    2 1282    4
+##          E    0    0    0    1 1434
 ## 
 ## Overall Statistics
 ##                                           
-##                Accuracy : 0.9967          
-##                  95% CI : (0.9951, 0.9978)
+##                Accuracy : 0.9959          
+##                  95% CI : (0.9942, 0.9972)
 ##     No Information Rate : 0.2845          
 ##     P-Value [Acc > NIR] : < 2.2e-16       
 ##                                           
-##                   Kappa : 0.9958          
+##                   Kappa : 0.9948          
 ##                                           
 ##  Mcnemar's Test P-Value : NA              
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            0.9991   0.9974   0.9956   0.9930   0.9965
-## Specificity            1.0000   0.9994   0.9978   0.9989   0.9998
-## Pos Pred Value         1.0000   0.9974   0.9898   0.9945   0.9993
-## Neg Pred Value         0.9996   0.9994   0.9991   0.9986   0.9992
+## Sensitivity            0.9996   0.9908   0.9963   0.9969   0.9945
+## Specificity            0.9991   0.9994   0.9977   0.9989   0.9998
+## Pos Pred Value         0.9978   0.9973   0.9891   0.9946   0.9993
+## Neg Pred Value         0.9998   0.9978   0.9992   0.9994   0.9988
 ## Prevalence             0.2845   0.1935   0.1744   0.1639   0.1838
-## Detection Rate         0.2842   0.1930   0.1736   0.1628   0.1832
-## Detection Prevalence   0.2842   0.1935   0.1754   0.1637   0.1833
-## Balanced Accuracy      0.9996   0.9984   0.9967   0.9960   0.9982
+## Detection Rate         0.2843   0.1917   0.1737   0.1634   0.1828
+## Detection Prevalence   0.2850   0.1922   0.1756   0.1643   0.1829
+## Balanced Accuracy      0.9993   0.9951   0.9970   0.9979   0.9971
 ```
+
+```r
+eva$overall[1]
+```
+
+```
+##  Accuracy 
+## 0.9959215
+```
+
+Overall, the accurarcy of the model is  0.991.
 
 ## Final Model
 
